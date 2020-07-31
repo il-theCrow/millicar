@@ -56,72 +56,80 @@ typedef std::map< std::pair< Ptr<MobilityModel>, Ptr<MobilityModel> >, channelCo
 
 class MmWaveVehicularPropagationLossModel : public PropagationLossModel
 {
-  public:
+public:
+  static TypeId GetTypeId (void);
+  MmWaveVehicularPropagationLossModel ();
 
-    static TypeId GetTypeId (void);
-    MmWaveVehicularPropagationLossModel ();
+  /**
+   * \param minLoss the minimum loss (dB)
+   *
+   * no matter how short the distance, the total propagation loss (in
+   * dB) will always be greater or equal than this value
+   */
+  void SetMinLoss (double minLoss);
 
-    /**
-     * \param minLoss the minimum loss (dB)
-     *
-     * no matter how short the distance, the total propagation loss (in
-     * dB) will always be greater or equal than this value
-     */
-    void SetMinLoss (double minLoss);
+  /**
+   * \return the minimum loss.
+   */
+  double GetMinLoss (void) const;
 
-    /**
-     * \return the minimum loss.
-     */
-    double GetMinLoss (void) const;
+  /**
+   * \param freq the operating frequency (Hz)
+   */
+  void SetFrequency (double freq);
 
-    /**
-     * \param freq the operating frequency (Hz)
-     */
-    void SetFrequency (double freq);
+  /**
+   * \returns the current frequency (Hz)
+   */
+  double GetFrequency (void) const;
 
-    /**
-     * \returns the current frequency (Hz)
-     */
-    double GetFrequency (void) const;
+  char GetChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b);
 
-    char GetChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b);
+  /**
+   * Manually set the channel condition for the pairs (a, b) and (b, a).
+   *
+   * \param a first vehicle
+   * \param b second vehicle
+   * \param chCond the channel condition between a and b, one of "l", "n", "v"
+   *
+   */
+  void SetChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b, std::string chCond);
 
-    std::string GetScenario ();
+  std::string GetScenario ();
 
-    double GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
+  double GetLoss (Ptr<MobilityModel> a, Ptr<MobilityModel> b) const;
 
-  private:
+private:
+  MmWaveVehicularPropagationLossModel (const MmWaveVehicularPropagationLossModel &o);
+  MmWaveVehicularPropagationLossModel & operator = (const MmWaveVehicularPropagationLossModel &o);
 
-    MmWaveVehicularPropagationLossModel (const MmWaveVehicularPropagationLossModel &o);
-    MmWaveVehicularPropagationLossModel & operator = (const MmWaveVehicularPropagationLossModel &o);
+  virtual double DoCalcRxPower (double txPowerDbm,
+                                Ptr<MobilityModel> a,
+                                Ptr<MobilityModel> b) const;
+  virtual int64_t DoAssignStreams (int64_t stream);
+  void UpdateConditionMap (Ptr<MobilityModel> a, Ptr<MobilityModel> b, channelCondition cond) const;
 
-    virtual double DoCalcRxPower (double txPowerDbm,
-                                  Ptr<MobilityModel> a,
-                                  Ptr<MobilityModel> b) const;
-    virtual int64_t DoAssignStreams (int64_t stream);
-    void UpdateConditionMap (Ptr<MobilityModel> a, Ptr<MobilityModel> b, channelCondition cond) const;
+  /**
+   * \param distance3D: the 3D distance between tx and rx
+   * \param hA: the height of device A
+   * \param hB: the height of device B
+   *
+   * \returns the additional NLOSv loss
+   */
+  double GetAdditionalNlosVLoss (double distance3D, double hA, double hB) const;
 
-    /**
-     * \param distance3D: the 3D distance between tx and rx
-     * \param hA: the height of device A
-     * \param hB: the height of device B
-     *
-     * \returns the additional NLOSv loss
-     */
-    double GetAdditionalNlosVLoss (double distance3D, double hA, double hB) const;
-
-    double m_frequency;
-    double m_lambda;
-    double m_minLoss;
-    mutable channelConditionMap_t m_channelConditionMap;
-    std::string m_channelConditions;
-    std::string m_scenario;
-    bool m_optionNlosEnabled;
-    Ptr<NormalRandomVariable> m_norVar;
-    Ptr<LogNormalRandomVariable> m_logNorVar;
-    Ptr<UniformRandomVariable> m_uniformVar;
-    bool m_shadowingEnabled;
-    double m_percType3Vehicles;
+  double m_frequency;
+  double m_lambda;
+  double m_minLoss;
+  mutable channelConditionMap_t m_channelConditionMap;
+  std::string m_channelConditions;
+  std::string m_scenario;
+  bool m_optionNlosEnabled;
+  Ptr<NormalRandomVariable> m_norVar;
+  Ptr<LogNormalRandomVariable> m_logNorVar;
+  Ptr<UniformRandomVariable> m_uniformVar;
+  bool m_shadowingEnabled;
+  double m_percType3Vehicles;
 };
 
 } // namespace millicar

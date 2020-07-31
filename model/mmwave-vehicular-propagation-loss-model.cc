@@ -130,8 +130,8 @@ MmWaveVehicularPropagationLossModel::GetFrequency (void) const
 
 double
 MmWaveVehicularPropagationLossModel::DoCalcRxPower (double txPowerDbm,
-                                               Ptr<MobilityModel> a,
-                                               Ptr<MobilityModel> b) const
+                                                    Ptr<MobilityModel> a,
+                                                    Ptr<MobilityModel> b) const
 {
   return (txPowerDbm - GetLoss (a, b));
 }
@@ -190,54 +190,54 @@ MmWaveVehicularPropagationLossModel::GetLoss (Ptr<MobilityModel> deviceA, Ptr<Mo
             {
               double a, b, c;
               a = 2.1013e-6;
-              b = - 0.002;
+              b = -0.002;
               c = 1.0193;
 
               if (distance3D <= 475)
-              {
-                probLos = std::min(1.0, a * pow(distance3D, 2) + b * distance3D + c);
-              }
+                {
+                  probLos = std::min (1.0, a * pow (distance3D, 2) + b * distance3D + c);
+                }
               else
-              {
-                probLos = std::max(0.0, 0.54 - 0.001 * (distance3D - 475));
-              }
+                {
+                  probLos = std::max (0.0, 0.54 - 0.001 * (distance3D - 475));
+                }
 
               if (PRef <= probLos)
-              {
-                condition.m_channelCondition = 'l';
-              }
+                {
+                  condition.m_channelCondition = 'l';
+                }
               else
-              {
-                condition.m_channelCondition = 'v';
-              }
+                {
+                  condition.m_channelCondition = 'v';
+                }
             }
           else if (m_scenario == "V2V-Urban")
             {
-              probLos = std::min(1.0, 1.05 * exp(-0.0114 * distance3D));
+              probLos = std::min (1.0, 1.05 * exp (-0.0114 * distance3D));
 
               if (PRef <= probLos)
-              {
-                condition.m_channelCondition = 'l';
-              }
+                {
+                  condition.m_channelCondition = 'l';
+                }
               else
-              {
-                condition.m_channelCondition = 'v';
-              }
+                {
+                  condition.m_channelCondition = 'v';
+                }
             }
           else if (m_scenario == "Extended-V2V-Highway")
             {
               // As established from TR 37.885 we  have to define
               double aLOS, bLOS, cLOS = 1;
               aLOS = 2.7e-6;
-              bLOS = - 0.0025;
+              bLOS = -0.0025;
 
-              probLos = std::min(1.0, std::max(0.0, aLOS * pow(distance3D, 2) + bLOS * distance3D + cLOS));
+              probLos = std::min (1.0, std::max (0.0, aLOS * pow (distance3D, 2) + bLOS * distance3D + cLOS));
 
               double aNLOS, bNLOS, cNLOS = 0.015;
               aNLOS = -3.7e-7;
               bNLOS = 0.00061;
 
-              probnLos = std::min(1.0, std::max(0.0, aNLOS * pow(distance3D, 2) + bNLOS * distance3D + cNLOS));
+              probnLos = std::min (1.0, std::max (0.0, aNLOS * pow (distance3D, 2) + bNLOS * distance3D + cNLOS));
 
               if (PRef <= probLos)
                 {
@@ -254,8 +254,8 @@ MmWaveVehicularPropagationLossModel::GetLoss (Ptr<MobilityModel> deviceA, Ptr<Mo
             }
           else if (m_scenario == "Extended-V2V-Urban")
             {
-              probLos = std::min(1.0, std::max(0.0, 0.8372 * exp (-0.0114*distance3D)));
-              probnLosv = std::min(1.0, std::max(0.0, 1/(0.0312*distance3D) * exp(- pow(log(distance3D) - 5.0063, 2) / 2.4544)));
+              probLos = std::min (1.0, std::max (0.0, 0.8372 * exp (-0.0114 * distance3D)));
+              probnLosv = std::min (1.0, std::max (0.0, 1 / (0.0312 * distance3D) * exp (-pow (log (distance3D) - 5.0063, 2) / 2.4544)));
 
               if (PRef <= probLos)
                 {
@@ -276,7 +276,7 @@ MmWaveVehicularPropagationLossModel::GetLoss (Ptr<MobilityModel> deviceA, Ptr<Mo
             }
 
           NS_LOG_DEBUG (m_scenario << " scenario, 2D distance = " << distance2D << "m, Prob_LOS = " << probLos
-                                    << ", Prob_REF = " << PRef << ", the channel condition is " << condition.m_channelCondition << ", h_A=" << hA << ",h_B=" << hB);
+                                   << ", Prob_REF = " << PRef << ", the channel condition is " << condition.m_channelCondition << ", h_A=" << hA << ",h_B=" << hB);
         }
       else
         {
@@ -299,139 +299,139 @@ MmWaveVehicularPropagationLossModel::GetLoss (Ptr<MobilityModel> deviceA, Ptr<Mo
   double shadowingCorDistance = 0;
 
   if (m_scenario == "V2V-Highway")
-  {
-    // The shadowing standard deviation and decorrelation distance are
-    // specified in TR 36.885 Sec. A.1.4
-    shadowingStd = 3.0;
-    shadowingCorDistance = 25.0;
-
-    switch ((*it).second.m_channelCondition)
     {
-      case 'l':
-      {
-        lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz);
-        break;
-      }
-      case 'v':
-      {
-        double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
-        lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz) + additionalLoss;
-        break;
-      }
-      case 'n':
-      {
-        lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
-        break;
-      }
-      default:
-        NS_FATAL_ERROR ("Programming Error.");
+      // The shadowing standard deviation and decorrelation distance are
+      // specified in TR 36.885 Sec. A.1.4
+      shadowingStd = 3.0;
+      shadowingCorDistance = 25.0;
 
+      switch ((*it).second.m_channelCondition)
+        {
+        case 'l':
+          {
+            lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz);
+            break;
+          }
+        case 'v':
+          {
+            double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
+            lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz) + additionalLoss;
+            break;
+          }
+        case 'n':
+          {
+            lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
+            break;
+          }
+        default:
+          NS_FATAL_ERROR ("Programming Error.");
+
+        }
     }
-  }
   else if (m_scenario == "V2V-Urban")
-  {
-    switch ((*it).second.m_channelCondition)
     {
-      case 'l':
-      {
-        lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz);
+      switch ((*it).second.m_channelCondition)
+        {
+        case 'l':
+          {
+            lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz);
 
-        // The shadowing standard deviation and decorrelation distance are
-        // specified in TR 36.885 Sec. A.1.4
-        shadowingStd = 3.0;
-        shadowingCorDistance = 10.0;
-        break;
-      }
-      case 'v':
-      {
-        double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
+            // The shadowing standard deviation and decorrelation distance are
+            // specified in TR 36.885 Sec. A.1.4
+            shadowingStd = 3.0;
+            shadowingCorDistance = 10.0;
+            break;
+          }
+        case 'v':
+          {
+            double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
 
-        lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz) + additionalLoss;
-        break;
+            lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz) + additionalLoss;
+            break;
 
-      }
-      case 'n':
-      {
-        lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
+          }
+        case 'n':
+          {
+            lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
 
-        // The shadowing standard deviation and decorrelation distance are
-        // specified in TR 36.885 Sec. A.1.4
-        shadowingStd = 4.0;
-        shadowingCorDistance = 10.0;
-        break;
-      }
-      default:
-        NS_FATAL_ERROR ("Programming Error.");
+            // The shadowing standard deviation and decorrelation distance are
+            // specified in TR 36.885 Sec. A.1.4
+            shadowingStd = 4.0;
+            shadowingCorDistance = 10.0;
+            break;
+          }
+        default:
+          NS_FATAL_ERROR ("Programming Error.");
 
+        }
     }
-  }
   else if (m_scenario == "Extended-V2V-Highway")
-  {
-    switch ((*it).second.m_channelCondition)
     {
-      case 'l':
-      {
-        lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz);
+      switch ((*it).second.m_channelCondition)
+        {
+        case 'l':
+          {
+            lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz);
 
-        shadowingStd = 3.0;
-        // The extended model does not specify the decorrelation distance. I
-        // assume the one specified by TR 36.885
-        shadowingCorDistance = 25.0;
-        break;
-      }
-      case 'v':
-      {
-        double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
+            shadowingStd = 3.0;
+            // The extended model does not specify the decorrelation distance. I
+            // assume the one specified by TR 36.885
+            shadowingCorDistance = 25.0;
+            break;
+          }
+        case 'v':
+          {
+            double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
 
-        lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz) + additionalLoss;
-        break;
-      }
-      case 'n':
-      {
-        lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
-        shadowingStd = 4.0;
-        // The extended model does not specify the decorrelation distance. I
-        // assume the one specified by TR 36.885
-        shadowingCorDistance = 25.0;
-        break;
-      }
-      default:
-        NS_FATAL_ERROR ("Programming Error.");
+            lossDb = 32.4 + 20 * log10 (distance3D) + 20 * log10 (freqGHz) + additionalLoss;
+            break;
+          }
+        case 'n':
+          {
+            lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
+            shadowingStd = 4.0;
+            // The extended model does not specify the decorrelation distance. I
+            // assume the one specified by TR 36.885
+            shadowingCorDistance = 25.0;
+            break;
+          }
+        default:
+          NS_FATAL_ERROR ("Programming Error.");
+        }
     }
-  }
   else if (m_scenario == "Extended-V2V-Urban")
-  {
-    switch ((*it).second.m_channelCondition)
     {
-      case 'l':
-      {
-        lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz);
-        shadowingStd = 3.0;
-        // The extended model does not specify the decorrelation distance. I
-        // assume the one specified by TR 36.885
-        shadowingCorDistance = 10.0;
-        break;
-      }
-      case 'v':
-      {
-        double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
+      switch ((*it).second.m_channelCondition)
+        {
+        case 'l':
+          {
+            lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz);
+            shadowingStd = 3.0;
+            // The extended model does not specify the decorrelation distance. I
+            // assume the one specified by TR 36.885
+            shadowingCorDistance = 10.0;
+            break;
+          }
+        case 'v':
+          {
+            double additionalLoss = GetAdditionalNlosVLoss (distance3D, hA, hB);
 
-        lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz) + additionalLoss;
-        break;
-      }
-      case 'n':
-      {
-        lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
-        shadowingStd = 4.0;
-        // The extended model does not specify the decorrelation distance. I
-        // assume the one specified by TR 36.885
-        shadowingCorDistance = 10.0;
-        break;
-      }
-      default:
-        NS_FATAL_ERROR ("Programming Error.");
+            lossDb = 38.77 + 16.7 * log10 (distance3D) + 18.2 * log10 (freqGHz) + additionalLoss;
+            break;
+          }
+        case 'n':
+          {
+            lossDb = 36.85 + 30 * log10 (distance3D) + 18.9 * log10 (freqGHz);
+            shadowingStd = 4.0;
+            // The extended model does not specify the decorrelation distance. I
+            // assume the one specified by TR 36.885
+            shadowingCorDistance = 10.0;
+            break;
+          }
+        default:
+          NS_FATAL_ERROR ("Programming Error.");
+        }
     }
-  }
   else
     {
       NS_FATAL_ERROR ("Unknown channel scenario");
@@ -484,46 +484,46 @@ MmWaveVehicularPropagationLossModel::GetAdditionalNlosVLoss (double distance3D, 
   double sigma_a = 0;
   double randomValue = m_uniformVar->GetValue () * 3.0;
   if (randomValue < m_percType3Vehicles)
-  {
-    // vehicles of type 3 have height 3 meters
-    blockerHeight = 3.0;
-  }
+    {
+      // vehicles of type 3 have height 3 meters
+      blockerHeight = 3.0;
+    }
   else
-  {
-    // vehicles of type 1 and 2 have height 1.6 meters
-    blockerHeight = 1.6;
-  }
+    {
+      // vehicles of type 1 and 2 have height 1.6 meters
+      blockerHeight = 1.6;
+    }
 
   // The additional blockage loss is max {0 dB, a log-normal random variable}
   if (std::min (hA, hB) > blockerHeight)
-  {
-    // Case 1: Minimum antenna height value of TX and RX > Blocker height
-    additionalLoss = 0;
-  }
+    {
+      // Case 1: Minimum antenna height value of TX and RX > Blocker height
+      additionalLoss = 0;
+    }
   else if (std::max (hA, hB) < blockerHeight)
-  {
-    // Case 2: Maximum antenna height value of TX and RX < Blocker height
-    mu_a = 9.0 + std::max (0.0, 15 * log10 (distance3D) - 41.0);
-    sigma_a = 4.5;
-    // Pay attention to the ambiguous definition of the parameters.
-    // Vehicular TR 37.885 defines mu_a and sigma_a as the mean and standard deviation of the log-normal random variable.
-    // ns-3's RNG considers mu and sigma as specific parameters of the log-normal distribution, while the mean and standard deviation are evaluated separately.
-    m_logNorVar->SetAttribute ("Mu", DoubleValue (log(pow(mu_a,2) / sqrt(pow(sigma_a,2) + pow(mu_a,2)))));
-    m_logNorVar->SetAttribute ("Sigma", DoubleValue (sqrt(log(pow(sigma_a,2) / pow(mu_a,2) + 1))));
-    additionalLoss = std::max(0.0, m_logNorVar->GetValue());
-  }
+    {
+      // Case 2: Maximum antenna height value of TX and RX < Blocker height
+      mu_a = 9.0 + std::max (0.0, 15 * log10 (distance3D) - 41.0);
+      sigma_a = 4.5;
+      // Pay attention to the ambiguous definition of the parameters.
+      // Vehicular TR 37.885 defines mu_a and sigma_a as the mean and standard deviation of the log-normal random variable.
+      // ns-3's RNG considers mu and sigma as specific parameters of the log-normal distribution, while the mean and standard deviation are evaluated separately.
+      m_logNorVar->SetAttribute ("Mu", DoubleValue (log (pow (mu_a,2) / sqrt (pow (sigma_a,2) + pow (mu_a,2)))));
+      m_logNorVar->SetAttribute ("Sigma", DoubleValue (sqrt (log (pow (sigma_a,2) / pow (mu_a,2) + 1))));
+      additionalLoss = std::max (0.0, m_logNorVar->GetValue ());
+    }
   else
-  {
-    // Case 3: Otherwise
-    mu_a = 5.0 + std::max (0.0, 15 * log10 (distance3D) - 41.0);
-    sigma_a = 4.0;
-    // Pay attention to the ambiguous definition of the parameters.
-    // Vehicular TR 37.885 defines mu_a and sigma_a as the mean and standard deviation of the log-normal random variable.
-    // ns-3's RNG considers mu and sigma as specific parameters of the log-normal distribution, while the mean and standard deviation are evaluated separately.
-    m_logNorVar->SetAttribute ("Mu", DoubleValue (log(pow(mu_a,2) / sqrt(pow(sigma_a,2) + pow(mu_a,2)))));
-    m_logNorVar->SetAttribute ("Sigma", DoubleValue (sqrt(log(pow(sigma_a,2) / pow(mu_a,2) + 1))));
-    additionalLoss = std::max(0.0, m_logNorVar->GetValue());
-  }
+    {
+      // Case 3: Otherwise
+      mu_a = 5.0 + std::max (0.0, 15 * log10 (distance3D) - 41.0);
+      sigma_a = 4.0;
+      // Pay attention to the ambiguous definition of the parameters.
+      // Vehicular TR 37.885 defines mu_a and sigma_a as the mean and standard deviation of the log-normal random variable.
+      // ns-3's RNG considers mu and sigma as specific parameters of the log-normal distribution, while the mean and standard deviation are evaluated separately.
+      m_logNorVar->SetAttribute ("Mu", DoubleValue (log (pow (mu_a,2) / sqrt (pow (sigma_a,2) + pow (mu_a,2)))));
+      m_logNorVar->SetAttribute ("Sigma", DoubleValue (sqrt (log (pow (sigma_a,2) / pow (mu_a,2) + 1))));
+      additionalLoss = std::max (0.0, m_logNorVar->GetValue ());
+    }
 
   return additionalLoss;
 }
@@ -553,6 +553,36 @@ MmWaveVehicularPropagationLossModel::GetChannelCondition (Ptr<MobilityModel> a, 
     }
   return (*it).second.m_channelCondition;
 
+}
+
+void
+MmWaveVehicularPropagationLossModel::SetChannelCondition (Ptr<MobilityModel> a, Ptr<MobilityModel> b, std::string chCond)
+{
+  NS_LOG_FUNCTION (this << a << b << chCond);
+
+  channelCondition cond;
+  cond.m_shadowing = 0.0;
+  cond.m_position = Vector ();
+
+  if (chCond.compare ("l") == 0)
+    {
+      cond.m_channelCondition = 'l';
+    }
+  else if (chCond.compare ("v") == 0)
+    {
+      cond.m_channelCondition = 'v';
+    }
+  else if (chCond.compare ("n") == 0)
+    {
+      cond.m_channelCondition = 'n';
+    }
+  else
+    {
+      NS_FATAL_ERROR ("Invalid channel condition: \"" << chCond << "\"");
+    }
+
+  // add to channelConditionMap or update it
+  UpdateConditionMap (a, b, cond);
 }
 
 std::string

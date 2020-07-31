@@ -37,7 +37,7 @@ namespace millicar {
 NS_OBJECT_ENSURE_REGISTERED (MmWaveVehicularHelper); // TODO check if this has to be defined here
 
 MmWaveVehicularHelper::MmWaveVehicularHelper ()
-: m_phyTraceHelper{CreateObject<MmWaveVehicularTracesHelper>("sinr-mcs.txt")} // TODO name as attribute
+  : m_phyTraceHelper {CreateObject<MmWaveVehicularTracesHelper> ("sinr-mcs.txt")} // TODO name as attribute
 {
   NS_LOG_FUNCTION (this);
 }
@@ -51,51 +51,51 @@ TypeId
 MmWaveVehicularHelper::GetTypeId ()
 {
   static TypeId tid =
-  TypeId ("ns3::MmWaveVehicularHelper")
-  .SetParent<Object> ()
-  .AddConstructor<MmWaveVehicularHelper> ()
-  .AddAttribute ("PropagationLossModel",
-                 "The type of path-loss model to be used. "
-                 "The allowed values for this attributes are the type names "
-                 "of any class inheriting from ns3::PropagationLossModel.",
-                 StringValue (""),
-                 MakeStringAccessor (&MmWaveVehicularHelper::SetPropagationLossModelType),
-                 MakeStringChecker ())
-  .AddAttribute ("SpectrumPropagationLossModel",
-                 "The type of fast fading model to be used. "
-                 "The allowed values for this attributes are the type names "
-                 "of any class inheriting from ns3::SpectrumPropagationLossModel.",
-                 StringValue (""),
-                 MakeStringAccessor (&MmWaveVehicularHelper::SetSpectrumPropagationLossModelType),
-                 MakeStringChecker ())
-  .AddAttribute ("PropagationDelayModel",
-                 "The type of propagation delay model to be used. "
-                 "The allowed values for this attributes are the type names "
-                 "of any class inheriting from ns3::PropagationDelayModel.",
-                 StringValue (""),
-                 MakeStringAccessor (&MmWaveVehicularHelper::SetPropagationDelayModelType),
-                 MakeStringChecker ())
-  .AddAttribute ("Numerology",
-                 "Numerology to use for the definition of the frame structure."
-                 "2 : subcarrier spacing will be set to 60 KHz"
-                 "3 : subcarrier spacing will be set to 120 KHz",
-                 UintegerValue (2),
-                 MakeUintegerAccessor (&MmWaveVehicularHelper::SetNumerology),
-                 MakeUintegerChecker<uint8_t> ())
-  .AddAttribute ("Bandwidth",
-                 "Bandwidth in Hz",
-                 DoubleValue (1e8),
-                 MakeDoubleAccessor (&MmWaveVehicularHelper::m_bandwidth),
-                 MakeDoubleChecker<double> ())
-  .AddAttribute ("SchedulingPatternOption",
-                 "The type of scheduling pattern option to be used for resources assignation."
-                 "Default   : one single slot per subframe for each device"
-                 "Optimized : each slot of the subframe is used",
-                 EnumValue(DEFAULT),
-                 MakeEnumAccessor (&MmWaveVehicularHelper::SetSchedulingPatternOptionType,
-                                   &MmWaveVehicularHelper::GetSchedulingPatternOptionType),
-                 MakeEnumChecker(DEFAULT, "Default",
-                                 OPTIMIZED, "Optimized"))
+    TypeId ("ns3::MmWaveVehicularHelper")
+    .SetParent<Object> ()
+    .AddConstructor<MmWaveVehicularHelper> ()
+    .AddAttribute ("PropagationLossModel",
+                   "The type of path-loss model to be used. "
+                   "The allowed values for this attributes are the type names "
+                   "of any class inheriting from ns3::PropagationLossModel.",
+                   StringValue (""),
+                   MakeStringAccessor (&MmWaveVehicularHelper::SetPropagationLossModelType),
+                   MakeStringChecker ())
+    .AddAttribute ("SpectrumPropagationLossModel",
+                   "The type of fast fading model to be used. "
+                   "The allowed values for this attributes are the type names "
+                   "of any class inheriting from ns3::SpectrumPropagationLossModel.",
+                   StringValue (""),
+                   MakeStringAccessor (&MmWaveVehicularHelper::SetSpectrumPropagationLossModelType),
+                   MakeStringChecker ())
+    .AddAttribute ("PropagationDelayModel",
+                   "The type of propagation delay model to be used. "
+                   "The allowed values for this attributes are the type names "
+                   "of any class inheriting from ns3::PropagationDelayModel.",
+                   StringValue (""),
+                   MakeStringAccessor (&MmWaveVehicularHelper::SetPropagationDelayModelType),
+                   MakeStringChecker ())
+    .AddAttribute ("Numerology",
+                   "Numerology to use for the definition of the frame structure."
+                   "2 : subcarrier spacing will be set to 60 KHz"
+                   "3 : subcarrier spacing will be set to 120 KHz",
+                   UintegerValue (2),
+                   MakeUintegerAccessor (&MmWaveVehicularHelper::SetNumerology),
+                   MakeUintegerChecker<uint8_t> ())
+    .AddAttribute ("Bandwidth",
+                   "Bandwidth in Hz",
+                   DoubleValue (1e8),
+                   MakeDoubleAccessor (&MmWaveVehicularHelper::m_bandwidth),
+                   MakeDoubleChecker<double> ())
+    .AddAttribute ("SchedulingPatternOption",
+                   "The type of scheduling pattern option to be used for resources assignation."
+                   "Default   : one single slot per subframe for each device"
+                   "Optimized : each slot of the subframe is used",
+                   EnumValue (DEFAULT),
+                   MakeEnumAccessor (&MmWaveVehicularHelper::SetSchedulingPatternOptionType,
+                                     &MmWaveVehicularHelper::GetSchedulingPatternOptionType),
+                   MakeEnumChecker (DEFAULT, "Default",
+                                    OPTIMIZED, "Optimized"))
   ;
 
   return tid;
@@ -112,29 +112,30 @@ MmWaveVehicularHelper::DoInitialize ()
   // create the channel
   m_channel = CreateObject<SingleModelSpectrumChannel> ();
   if (!m_propagationLossModelType.empty ())
-  {
-    ObjectFactory factory (m_propagationLossModelType);
-    m_channel->AddPropagationLossModel (factory.Create<PropagationLossModel> ());
-  }
+    {
+      ObjectFactory factory (m_propagationLossModelType);
+      m_propagationLossModel = factory.Create<PropagationLossModel> ();
+      m_channel->AddPropagationLossModel (m_propagationLossModel);
+    }
   if (!m_spectrumPropagationLossModelType.empty ())
-  {
-    ObjectFactory factory (m_spectrumPropagationLossModelType);
-    m_channel->AddSpectrumPropagationLossModel (factory.Create<SpectrumPropagationLossModel> ());
-  }
+    {
+      ObjectFactory factory (m_spectrumPropagationLossModelType);
+      m_channel->AddSpectrumPropagationLossModel (factory.Create<SpectrumPropagationLossModel> ());
+    }
   if (!m_propagationDelayModelType.empty ())
-  {
-    ObjectFactory factory (m_propagationDelayModelType);
-    m_channel->SetPropagationDelayModel (factory.Create<PropagationDelayModel> ());
-  }
+    {
+      ObjectFactory factory (m_propagationDelayModelType);
+      m_channel->SetPropagationDelayModel (factory.Create<PropagationDelayModel> ());
+    }
 
   // 3GPP vehicular channel needs proper configuration
   if (m_spectrumPropagationLossModelType == "ns3::MmWaveVehicularSpectrumPropagationLossModel")
-  {
-    Ptr<MmWaveVehicularSpectrumPropagationLossModel> threeGppSplm = DynamicCast<MmWaveVehicularSpectrumPropagationLossModel> (m_channel->GetSpectrumPropagationLossModel ());
-    PointerValue plm;
-    m_channel->GetAttribute ("PropagationLossModel", plm);
-    threeGppSplm->SetPathlossModel (plm.Get<PropagationLossModel> ()); // associate pathloss and fast fading models
-  }
+    {
+      Ptr<MmWaveVehicularSpectrumPropagationLossModel> threeGppSplm = DynamicCast<MmWaveVehicularSpectrumPropagationLossModel> (m_channel->GetSpectrumPropagationLossModel ());
+      PointerValue plm;
+      m_channel->GetAttribute ("PropagationLossModel", plm);
+      threeGppSplm->SetPathlossModel (plm.Get<PropagationLossModel> ()); // associate pathloss and fast fading models
+    }
 }
 
 void
@@ -166,20 +167,20 @@ MmWaveVehicularHelper::SetNumerology (uint8_t index)
 
   double subcarrierSpacing = 15 * std::pow (2, m_numerologyIndex) * 1000; // subcarrier spacing based on the numerology. Only 60KHz and 120KHz is supported in NR V2X.
 
-  m_phyMacConfig->SetSymbPerSlot(14); // TR 38.802 Section 5.3: each slot must have 14 symbols < Symbol duration is dependant on the numerology
-  m_phyMacConfig->SetSlotPerSubframe(std::pow (2, m_numerologyIndex)); // flexible number of slots per subframe - depends on numerology
+  m_phyMacConfig->SetSymbPerSlot (14); // TR 38.802 Section 5.3: each slot must have 14 symbols < Symbol duration is dependant on the numerology
+  m_phyMacConfig->SetSlotPerSubframe (std::pow (2, m_numerologyIndex)); // flexible number of slots per subframe - depends on numerology
   m_phyMacConfig->SetSubframePeriod (1000); // TR 38.802 Section 5.3: the subframe duration is 1ms, i.e., 1000us, and the frame length is 10ms.
   m_phyMacConfig->SetSymbolPeriod ( m_phyMacConfig->GetSubframePeriod () / m_phyMacConfig->GetSlotsPerSubframe () / m_phyMacConfig->GetSymbPerSlot ()); // symbol period is required in microseconds
 
   double subCarriersPerRB = 12;
 
-  m_phyMacConfig->SetNumChunkPerRB(1); // each resource block contains 1 chunk
-  m_phyMacConfig->SetNumRb ( uint32_t( m_bandwidth / (subcarrierSpacing * subCarriersPerRB) ) );
+  m_phyMacConfig->SetNumChunkPerRB (1); // each resource block contains 1 chunk
+  m_phyMacConfig->SetNumRb ( uint32_t ( m_bandwidth / (subcarrierSpacing * subCarriersPerRB) ) );
 
-  m_phyMacConfig->SetChunkWidth (subCarriersPerRB*subcarrierSpacing);
+  m_phyMacConfig->SetChunkWidth (subCarriersPerRB * subcarrierSpacing);
 
-  //TODO: How many reference subcarriers per symbols should we consider to be compliant with NR-V2X? 
-  m_phyMacConfig->SetNumRefScPerSym(0);
+  //TODO: How many reference subcarriers per symbols should we consider to be compliant with NR-V2X?
+  m_phyMacConfig->SetNumRefScPerSym (0);
 
 }
 
@@ -241,10 +242,10 @@ MmWaveVehicularHelper::InstallSingleMmWaveVehicularNetDevice (Ptr<Node> node, ui
   // connect the callback to report the SINR
   ssp->SetSidelinkSinrReportCallback (MakeCallback (&MmWaveSidelinkPhy::GenerateSinrReport, phy));
 
-  if(m_phyTraceHelper != 0)
-  {
-    ssp->SetSidelinkSinrReportCallback (MakeCallback (&MmWaveVehicularTracesHelper::McsSinrCallback, m_phyTraceHelper));
-  }
+  if (m_phyTraceHelper != 0)
+    {
+      ssp->SetSidelinkSinrReportCallback (MakeCallback (&MmWaveVehicularTracesHelper::McsSinrCallback, m_phyTraceHelper));
+    }
 
   // create the mac
   Ptr<MmWaveSidelinkMac> mac = CreateObject<MmWaveSidelinkMac> (m_phyMacConfig);
@@ -261,12 +262,14 @@ MmWaveVehicularHelper::InstallSingleMmWaveVehicularNetDevice (Ptr<Node> node, ui
   ssp->SetDevice (device);
 
   // connect the rx callback of the mac object to the rx method of the NetDevice
-  mac->SetForwardUpCallback(MakeCallback(&MmWaveVehicularNetDevice::Receive, device));
+  mac->SetForwardUpCallback (MakeCallback (&MmWaveVehicularNetDevice::Receive, device));
 
   // initialize the channel (if needed)
   Ptr<MmWaveVehicularSpectrumPropagationLossModel> splm = DynamicCast<MmWaveVehicularSpectrumPropagationLossModel> (m_channel->GetSpectrumPropagationLossModel ());
   if (splm)
-    splm->AddDevice (device, aam);
+    {
+      splm->AddDevice (device, aam);
+    }
 
   return device;
 }
@@ -279,7 +282,7 @@ MmWaveVehicularHelper::PairDevices (NetDeviceContainer devices)
   // TODO update this part to enable a more flexible configuration of the
   // scheduling pattern
 
-  std::vector<uint16_t> pattern = CreateSchedulingPattern(devices);
+  std::vector<uint16_t> pattern = CreateSchedulingPattern (devices);
 
   uint8_t bearerId = 1;
 
@@ -294,29 +297,29 @@ MmWaveVehicularHelper::PairDevices (NetDeviceContainer devices)
       di->GetMac ()->SetSfAllocationInfo (pattern); // this is called ONCE for each NetDevice
 
       for (NetDeviceContainer::Iterator j = i + 1; j != devices.End (); ++j)
-      {
-        Ptr<MmWaveVehicularNetDevice> dj = DynamicCast<MmWaveVehicularNetDevice> (*j);
-        Ptr<Node> jNode = dj->GetNode ();
-        Ptr<Ipv4> jNodeIpv4 = jNode->GetObject<Ipv4> ();
-        NS_ASSERT_MSG (jNodeIpv4 != 0, "Nodes need to have IPv4 installed before pairing can be activated");
+        {
+          Ptr<MmWaveVehicularNetDevice> dj = DynamicCast<MmWaveVehicularNetDevice> (*j);
+          Ptr<Node> jNode = dj->GetNode ();
+          Ptr<Ipv4> jNodeIpv4 = jNode->GetObject<Ipv4> ();
+          NS_ASSERT_MSG (jNodeIpv4 != 0, "Nodes need to have IPv4 installed before pairing can be activated");
 
-        // initialize the <IP address, RNTI> map of the devices
-        int32_t interface =  jNodeIpv4->GetInterfaceForDevice (dj);
-        Ipv4Address diAddr = iNodeIpv4->GetAddress (interface, 0).GetLocal ();
-        Ipv4Address djAddr = jNodeIpv4->GetAddress (interface, 0).GetLocal ();
+          // initialize the <IP address, RNTI> map of the devices
+          int32_t interface =  jNodeIpv4->GetInterfaceForDevice (dj);
+          Ipv4Address diAddr = iNodeIpv4->GetAddress (interface, 0).GetLocal ();
+          Ipv4Address djAddr = jNodeIpv4->GetAddress (interface, 0).GetLocal ();
 
-        // register the associated devices in the PHY
-        di->GetPhy ()->AddDevice (dj->GetMac ()->GetRnti (), dj);
-        dj->GetPhy ()->AddDevice (di->GetMac ()->GetRnti (), di);
+          // register the associated devices in the PHY
+          di->GetPhy ()->AddDevice (dj->GetMac ()->GetRnti (), dj);
+          dj->GetPhy ()->AddDevice (di->GetMac ()->GetRnti (), di);
 
-        // bearer activation by creating a logical channel between the two devices
-        NS_LOG_DEBUG("Activation of bearer between " << diAddr << " and " << djAddr);
-        NS_LOG_DEBUG("Bearer ID: " << uint32_t(bearerId) << " - Associate RNTI " << di->GetMac ()->GetRnti () << " to " << dj->GetMac ()->GetRnti ());
+          // bearer activation by creating a logical channel between the two devices
+          NS_LOG_DEBUG ("Activation of bearer between " << diAddr << " and " << djAddr);
+          NS_LOG_DEBUG ("Bearer ID: " << uint32_t (bearerId) << " - Associate RNTI " << di->GetMac ()->GetRnti () << " to " << dj->GetMac ()->GetRnti ());
 
-        di->ActivateBearer(bearerId, dj->GetMac ()->GetRnti (), djAddr);
-        dj->ActivateBearer(bearerId, di->GetMac ()->GetRnti (), diAddr);
-        bearerId++;
-      }
+          di->ActivateBearer (bearerId, dj->GetMac ()->GetRnti (), djAddr);
+          dj->ActivateBearer (bearerId, di->GetMac ()->GetRnti (), diAddr);
+          bearerId++;
+        }
 
 
     }
@@ -335,58 +338,58 @@ MmWaveVehicularHelper::CreateSchedulingPattern (NetDeviceContainer devices)
   std::vector<uint16_t> pattern;
 
   switch (m_schedulingOpt)
-  {
+    {
     case DEFAULT:
-    {
-      // Each slot in the subframe is assigned to a different user.
-      // If (numDevices < numSlots), the remaining available slots are unused
-      pattern = std::vector<uint16_t> (slotPerSf);
-      for (uint16_t i = 0; i < devices.GetN (); i++)
       {
-        Ptr<MmWaveVehicularNetDevice> di = DynamicCast<MmWaveVehicularNetDevice> (devices.Get (i));
-        pattern.at(i) = di->GetMac ()->GetRnti ();
-        NS_LOG_DEBUG ("slot " << i << " assigned to rnti " << di->GetMac ()->GetRnti ());
+        // Each slot in the subframe is assigned to a different user.
+        // If (numDevices < numSlots), the remaining available slots are unused
+        pattern = std::vector<uint16_t> (slotPerSf);
+        for (uint16_t i = 0; i < devices.GetN (); i++)
+          {
+            Ptr<MmWaveVehicularNetDevice> di = DynamicCast<MmWaveVehicularNetDevice> (devices.Get (i));
+            pattern.at (i) = di->GetMac ()->GetRnti ();
+            NS_LOG_DEBUG ("slot " << i << " assigned to rnti " << di->GetMac ()->GetRnti ());
+          }
+        break;
       }
-      break;
-    }
     case OPTIMIZED:
-    {
-      // Each slot in the subframe is used
-      uint8_t slotPerDev = std::floor ( slotPerSf / devices.GetN ());
-      uint8_t remainingSlots = slotPerSf % devices.GetN ();
-
-      NS_LOG_DEBUG("Minimum number of slots per device = " << (uint16_t)slotPerDev);
-      NS_LOG_DEBUG("Available slots = " << (uint16_t)slotPerSf);
-
-      uint8_t slotCnt = 0;
-
-      for (uint16_t i = 0; i < devices.GetN (); i++)
       {
-        Ptr<MmWaveVehicularNetDevice> di = DynamicCast<MmWaveVehicularNetDevice> (devices.Get (i));
+        // Each slot in the subframe is used
+        uint8_t slotPerDev = std::floor ( slotPerSf / devices.GetN ());
+        uint8_t remainingSlots = slotPerSf % devices.GetN ();
 
-        for (uint8_t j = 0; j < slotPerDev; j++)
-        {
-          pattern.push_back(di->GetMac ()->GetRnti ());
-          NS_LOG_DEBUG ("slot " << uint16_t(slotCnt) << " assigned to rnti " << di->GetMac ()->GetRnti ());
-          slotCnt++;
-        }
-      }
+        NS_LOG_DEBUG ("Minimum number of slots per device = " << (uint16_t)slotPerDev);
+        NS_LOG_DEBUG ("Available slots = " << (uint16_t)slotPerSf);
 
-      NS_LOG_DEBUG("Remaining slots = " << (uint16_t)remainingSlots);
-      for (uint16_t i = 0; i < remainingSlots; i++)
-      {
-        Ptr<MmWaveVehicularNetDevice> di = DynamicCast<MmWaveVehicularNetDevice> (devices.Get (i));
-        pattern.push_back(di->GetMac ()->GetRnti ());
-        NS_LOG_DEBUG ("slot " << uint16_t(slotCnt) << " assigned to rnti " << di->GetMac ()->GetRnti ());
-        slotCnt++;
+        uint8_t slotCnt = 0;
+
+        for (uint16_t i = 0; i < devices.GetN (); i++)
+          {
+            Ptr<MmWaveVehicularNetDevice> di = DynamicCast<MmWaveVehicularNetDevice> (devices.Get (i));
+
+            for (uint8_t j = 0; j < slotPerDev; j++)
+              {
+                pattern.push_back (di->GetMac ()->GetRnti ());
+                NS_LOG_DEBUG ("slot " << uint16_t (slotCnt) << " assigned to rnti " << di->GetMac ()->GetRnti ());
+                slotCnt++;
+              }
+          }
+
+        NS_LOG_DEBUG ("Remaining slots = " << (uint16_t)remainingSlots);
+        for (uint16_t i = 0; i < remainingSlots; i++)
+          {
+            Ptr<MmWaveVehicularNetDevice> di = DynamicCast<MmWaveVehicularNetDevice> (devices.Get (i));
+            pattern.push_back (di->GetMac ()->GetRnti ());
+            NS_LOG_DEBUG ("slot " << uint16_t (slotCnt) << " assigned to rnti " << di->GetMac ()->GetRnti ());
+            slotCnt++;
+          }
+        break;
       }
-      break;
-    }
     default:
-    {
-      NS_FATAL_ERROR("Programming Error.");
+      {
+        NS_FATAL_ERROR ("Programming Error.");
+      }
     }
-  }
 
   return pattern;
 }
@@ -424,6 +427,13 @@ MmWaveVehicularHelper::GetSchedulingPatternOptionType () const
 {
   NS_LOG_FUNCTION (this);
   return m_schedulingOpt;
+}
+
+Ptr<PropagationLossModel>
+MmWaveVehicularHelper::GetPropagationLossModel (void) const
+{
+  NS_LOG_FUNCTION (this);
+  return m_propagationLossModel;
 }
 
 } // namespace millicar

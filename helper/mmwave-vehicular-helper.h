@@ -113,8 +113,11 @@ public:
   /**
    * Identifies the supported scheduling pattern policies
    */
-  enum SchedulingPatternOption_t {DEFAULT = 1,
-                                   OPTIMIZED = 2};
+  enum SchedulingPatternOption_t
+  {
+    DEFAULT = 1,
+    OPTIMIZED = 2
+  };
 
   /**
   * Set the scheduling pattern option type
@@ -127,6 +130,12 @@ public:
   * \return the adopted scheduling pattern policy
   */
   SchedulingPatternOption_t GetSchedulingPatternOptionType () const;
+
+  /**
+   *
+   *  \return the propagation loss model for the environment
+   */
+  Ptr<PropagationLossModel> GetPropagationLossModel (void) const;
 
 protected:
   // inherited from Object
@@ -150,6 +159,7 @@ private:
   std::string m_spectrumPropagationLossModelType; //!< the type id of the spectrum propagation loss model to be used
   std::string m_propagationDelayModelType; //!< the type id of the delay model to be used
   SchedulingPatternOption_t m_schedulingOpt; //!< the type of scheduling pattern policy to be adopted
+  Ptr<PropagationLossModel> m_propagationLossModel; //!< Ptr to the propagation loss model
 
   Ptr<MmWaveVehicularTracesHelper> m_phyTraceHelper; //!< Ptr to an helper for the physical layer traces
 
