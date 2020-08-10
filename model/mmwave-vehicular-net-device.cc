@@ -70,8 +70,8 @@ TypeId MmWaveVehicularNetDevice::GetTypeId ()
                    MakeUintegerAccessor (&MmWaveVehicularNetDevice::SetMtu,
                                          &MmWaveVehicularNetDevice::GetMtu),
                    MakeUintegerChecker<uint16_t> ())
-     .AddAttribute ("RlcType",
-                  "Set the RLC mode to use (AM not supported for now)",
+    .AddAttribute ("RlcType",
+                   "Set the RLC mode to use (AM not supported for now)",
                    StringValue ("LteRlcTm"),
                    MakeStringAccessor (&MmWaveVehicularNetDevice::m_rlcType),
                    MakeStringChecker ())
@@ -264,65 +264,65 @@ TypeId
 MmWaveVehicularNetDevice::GetRlcType (std::string rlcType)
 {
   if (rlcType == "LteRlcSm")
-  {
-    return LteRlcSm::GetTypeId ();
-  }
+    {
+      return LteRlcSm::GetTypeId ();
+    }
   else if (rlcType == "LteRlcUm")
-  {
-    return LteRlcUm::GetTypeId ();
-  }
+    {
+      return LteRlcUm::GetTypeId ();
+    }
   else if (rlcType == "LteRlcTm")
-  {
-    return LteRlcTm::GetTypeId ();
-  }
+    {
+      return LteRlcTm::GetTypeId ();
+    }
   else
-  {
-    NS_FATAL_ERROR ("Unknown RLC type");
-  }
+    {
+      NS_FATAL_ERROR ("Unknown RLC type");
+    }
 }
 
 void
-MmWaveVehicularNetDevice::ActivateBearer(const uint8_t bearerId, const uint16_t destRnti, const Address& dest)
+MmWaveVehicularNetDevice::ActivateBearer (const uint8_t bearerId, const uint16_t destRnti, const Address& dest)
 {
-  NS_LOG_FUNCTION(this << bearerId);
+  NS_LOG_FUNCTION (this << bearerId);
   uint8_t lcid = bearerId; // set the LCID to be equal to the bearerId
   // future extensions could consider a different mapping
   // and will actually exploit the following map
-  m_bid2lcid.insert(std::make_pair(bearerId, lcid));
+  m_bid2lcid.insert (std::make_pair (bearerId, lcid));
 
-  NS_ASSERT_MSG(m_bearerToInfoMap.find (bearerId) == m_bearerToInfoMap.end (),
-    "There's another bearer associated to this bearerId: " << uint32_t(bearerId));
+  NS_ASSERT_MSG (m_bearerToInfoMap.find (bearerId) == m_bearerToInfoMap.end (),
+                 "There's another bearer associated to this bearerId: " << uint32_t (bearerId));
 
   EpcTft::PacketFilter slFilter;
-  slFilter.remoteAddress= Ipv4Address::ConvertFrom(dest);
+  slFilter.remoteAddress = Ipv4Address::ConvertFrom (dest);
 
   Ptr<Node> node = GetNode ();
   Ptr<Ipv4> nodeIpv4 = node->GetObject<Ipv4> ();
   int32_t interface =  nodeIpv4->GetInterfaceForDevice (this);
   Ipv4Address src = nodeIpv4->GetAddress (interface, 0).GetLocal ();
-  slFilter.localAddress= Ipv4Address::ConvertFrom(src);
+  slFilter.localAddress = Ipv4Address::ConvertFrom (src);
   //slFilter.direction= EpcTft::DOWNLINK;
-  slFilter.remoteMask= Ipv4Mask("255.255.255.255");
-  slFilter.localMask= Ipv4Mask("255.255.255.255");
+  slFilter.remoteMask = Ipv4Mask ("255.255.255.255");
+  slFilter.localMask = Ipv4Mask ("255.255.255.255");
 
-  NS_LOG_DEBUG(this << " Add filter for " << Ipv4Address::ConvertFrom(dest));
+  NS_LOG_DEBUG (this << " Add filter for " << Ipv4Address::ConvertFrom (dest));
 
   Ptr<EpcTft> tft = Create<EpcTft> (); // Create a new tft
   tft->Add (slFilter); // Add the packet filter
 
-  m_tftClassifier.Add(tft, bearerId);
+  m_tftClassifier.Add (tft, bearerId);
 
   // Create RLC instance with specific RNTI and LCID
   ObjectFactory rlcObjectFactory;
-  rlcObjectFactory.SetTypeId (GetRlcType(m_rlcType));
+  rlcObjectFactory.SetTypeId (GetRlcType (m_rlcType));
   Ptr<LteRlc> rlc = rlcObjectFactory.Create ()->GetObject<LteRlc> ();
 
-  rlc->SetLteMacSapProvider (m_mac->GetMacSapProvider());
+  rlc->SetLteMacSapProvider (m_mac->GetMacSapProvider ());
   rlc->SetRnti (destRnti); // this is the rnti of the destination
   rlc->SetLcId (lcid);
 
   // Call to the MAC method that created the SAP for binding the MAC instance on this node to the RLC instance just created
-  m_mac->AddMacSapUser(lcid, rlc->GetLteMacSapUser());
+  m_mac->AddMacSapUser (lcid, rlc->GetLteMacSapUser ());
 
   Ptr<LtePdcp> pdcp = CreateObject<LtePdcp> ();
   pdcp->SetRnti (destRnti); // this is the rnti of the destination
@@ -336,11 +336,11 @@ MmWaveVehicularNetDevice::ActivateBearer(const uint8_t bearerId, const uint16_t 
   rlc->Initialize (); // this is needed to trigger the BSR procedure if RLC SM is selected
 
   Ptr<SidelinkRadioBearerInfo> rbInfo = CreateObject<SidelinkRadioBearerInfo> ();
-  rbInfo->m_rlc= rlc;
+  rbInfo->m_rlc = rlc;
   rbInfo->m_pdcp = pdcp;
   rbInfo->m_rnti = destRnti;
 
-  NS_LOG_DEBUG(this << " MmWaveVehicularNetDevice::ActivateBearer() bid: " << (uint32_t)bearerId << " rnti: " << destRnti);
+  NS_LOG_DEBUG (this << " MmWaveVehicularNetDevice::ActivateBearer() bid: " << (uint32_t)bearerId << " rnti: " << destRnti);
 
   // insert the tuple <lcid, pdcpSapProvider> in the map of this NetDevice, so that we are able to associate it to them later
   m_bearerToInfoMap.insert (std::make_pair (bearerId, rbInfo));
@@ -350,24 +350,24 @@ void
 MmWaveVehicularNetDevice::Receive (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << p);
-  NS_LOG_DEBUG ("Received packet at: " << Simulator::Now().GetSeconds() << "s");
+  NS_LOG_DEBUG ("Received packet at: " << Simulator::Now ().GetSeconds () << "s");
   uint8_t ipType;
 
   p->CopyData (&ipType, 1);
-  ipType = (ipType>>4) & 0x0f;
+  ipType = (ipType >> 4) & 0x0f;
 
   if (ipType == 0x04)
-  {
-    m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
-  }
+    {
+      m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
+    }
   else if (ipType == 0x06)
-  {
-    m_rxCallback (this, p, Ipv6L3Protocol::PROT_NUMBER, Address ());
-  }
+    {
+      m_rxCallback (this, p, Ipv6L3Protocol::PROT_NUMBER, Address ());
+    }
   else
-  {
-    NS_ABORT_MSG ("MmWaveVehicularNetDevice::Receive - Unknown IP type...");
-  }
+    {
+      NS_ABORT_MSG ("MmWaveVehicularNetDevice::Receive - Unknown IP type...");
+    }
 }
 
 bool
@@ -375,14 +375,44 @@ MmWaveVehicularNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_
 {
   NS_LOG_FUNCTION (this);
 
+  // set a fake IP header for the TFT classifier, for effective routing
+  Ptr<Packet> pCopy = packet->Copy ();
+  if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
+    {
+      Ptr<Ipv4> ipv4 = this->GetNode ()->GetObject<Ipv4> ();
+      int32_t interface = ipv4->GetInterfaceForDevice (this);
+      Ipv4Header ip4Header;
+      pCopy->RemoveHeader (ip4Header);
+      // source is local address
+      ip4Header.SetSource (ipv4->GetAddress (interface, 0).GetLocal ());
+
+      //  get next hop
+      Socket::SocketErrno socketErrno;
+      Ipv4Address destAddr =
+        ipv4->GetRoutingProtocol ()->RouteOutput (nullptr, ip4Header, this, socketErrno)->GetGateway ();
+      NS_ASSERT_MSG (socketErrno == Socket::ERROR_NOTERROR, "Routing error: " << socketErrno);
+
+      // destination is next hop, if its address is valid, otherwise it's left untouched
+      if (!destAddr.IsAny ())
+        {
+          ip4Header.SetDestination (destAddr);
+        }
+
+      pCopy->AddHeader (ip4Header);
+    }
+  else
+    {
+      NS_ABORT_MSG ("Not yet implemented PROT_NUMBER=" << protocolNumber);
+    }
+
   // classify the incoming packet
-  uint32_t id = m_tftClassifier.Classify (packet, EpcTft::UPLINK, protocolNumber);
+  uint32_t id = m_tftClassifier.Classify (pCopy, EpcTft::UPLINK, protocolNumber);
   NS_ASSERT ((id & 0xFFFFFF00) == 0);
   uint8_t bid = (uint8_t) (id & 0x000000FF);
-  uint8_t lcid = BidToLcid(bid);
+  uint8_t lcid = BidToLcid (bid);
 
   // get the SidelinkRadioBearerInfo
-  NS_ASSERT_MSG(m_bearerToInfoMap.find (bid) != m_bearerToInfoMap.end (), "No logical channel associated to this communication");
+  NS_ASSERT_MSG (m_bearerToInfoMap.find (bid) != m_bearerToInfoMap.end (), "No logical channel associated to this communication");
   auto bearerInfo = m_bearerToInfoMap.find (bid)->second;
 
   LtePdcpSapProvider::TransmitPdcpSduParameters params;
@@ -390,22 +420,22 @@ MmWaveVehicularNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_
   params.rnti = bearerInfo->m_rnti;
   params.lcid = lcid;
 
-  NS_LOG_DEBUG(this << " MmWaveVehicularNetDevice::Send() bid " << (uint32_t)bid << " lcid " << (uint32_t)lcid << " rnti " << bearerInfo->m_rnti);
+  NS_LOG_DEBUG (this << " MmWaveVehicularNetDevice::Send() bid " << (uint32_t)bid << " lcid " << (uint32_t)lcid << " rnti " << bearerInfo->m_rnti);
 
   packet->RemoveAllPacketTags (); // remove all tags in case there is any
 
   params.pdcpSdu = packet;
-  bearerInfo->m_pdcp->GetLtePdcpSapProvider()->TransmitPdcpSdu (params);
+  bearerInfo->m_pdcp->GetLtePdcpSapProvider ()->TransmitPdcpSdu (params);
 
   return true;
 }
 
 uint8_t
-MmWaveVehicularNetDevice::BidToLcid(const uint8_t bearerId) const
+MmWaveVehicularNetDevice::BidToLcid (const uint8_t bearerId) const
 {
-  NS_ASSERT_MSG(m_bid2lcid.find(bearerId) != m_bid2lcid.end(),
-    "BearerId to LCID mapping not found " << bearerId);
-  return m_bid2lcid.find(bearerId)->second;
+  NS_ASSERT_MSG (m_bid2lcid.find (bearerId) != m_bid2lcid.end (),
+                 "BearerId to LCID mapping not found " << bearerId);
+  return m_bid2lcid.find (bearerId)->second;
 }
 
 }
